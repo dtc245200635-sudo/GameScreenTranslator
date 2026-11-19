@@ -38,6 +38,32 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             Form {
+                // MARK: - Mục Nổi Bật: Chế độ Menu Nổi Góc Trái (Chạy ẩn khi chơi game)
+                Section(header: Label("Menu Nổi Dịch Game (Chạy Ẩn)", systemImage: "sparkles")) {
+                    NavigationLink(destination: ScreenCropTranslateView()) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(LinearGradient(colors: [.blue, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .frame(width: 42, height: 42)
+                                Image(systemName: "character.book.closed.fill")
+                                    .foregroundColor(.white)
+                                    .font(.title3)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Bật Menu Nổi Chơi Game")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text("Hiện menu nổi góc trên trái: Bấm để chụp & dịch tức thì, bấm lại để ẩn")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
                 // MARK: - Mục 1: Chọn Ngôn Ngữ Game Cần Dịch (Đưa lên đầu để dễ thấy nhất)
                 Section(header: Label("Chọn Ngôn Ngữ Game Cần Dịch", systemImage: "globe")) {
                     Picker("Ngôn ngữ gốc", selection: $sourceLang) {

@@ -254,9 +254,78 @@ struct ScreenCropTranslateView: View {
                 )
             }
             
-            // 4. Nút X đóng ở góc trên (chỉ có dấu X, không thêm chữ)
+            // 4. Menu nổi góc trên trái & Nút X đóng ở góc trên phải
             VStack {
-                HStack {
+                HStack(alignment: .center) {
+                    // MENU NỔI GÓC TRÊN TRÁI (CHUẨN ẢNH 10: [ ☰ ID Indo ▼ ] và [ 文A Bấm Dịch ])
+                    HStack(spacing: 6) {
+                        Menu {
+                            ForEach(allLanguages, id: \.code) { lang in
+                                Button(lang.name) {
+                                    sourceLang = lang.code
+                                    AppSettings.sourceLanguage = lang.code
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "line.3.horizontal")
+                                    .font(.system(size: 11, weight: .bold))
+                                Text(sourceLang.starts(with: "id") ? "ID Indo" : (allLanguages.first(where: { $0.code == sourceLang })?.name ?? sourceLang))
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.blue)
+                                Image(systemName: "arrowtriangle.down.fill")
+                                    .font(.system(size: 7))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(UIColor.systemGray6)))
+                        }
+                        
+                        // Nút 文A Bấm Dịch: Tự động chụp / quét câu thoại và dịch ngay; bấm lại để đóng
+                        Button(action: {
+                            if !translatedResultText.isEmpty {
+                                translatedResultText = ""
+                                selectionRect = .zero
+                            } else {
+                                triggerDefaultSnapTranslation(containerSize: UIScreen.main.bounds.size)
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "character.book.closed.fill")
+                                    .font(.system(size: 11))
+                                Text(!translatedResultText.isEmpty ? "Ẩn Dịch" : "Bấm Dịch")
+                                    .font(.system(size: 11, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                LinearGradient(colors: [.blue, .indigo], startPoint: .leading, endPoint: .trailing)
+                            )
+                            .cornerRadius(8)
+                        }
+                    }
+                    .padding(5)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.85)))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.blue.opacity(0.5), lineWidth: 1))
+                    
+                    Spacer()
+                    
+                    if isTranslating {
+                        HStack(spacing: 6) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            Text("Đang dịch...")
+                                .font(.caption2.bold())
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.black.opacity(0.7)))
+                    }
+                    
+                    // Nút X tròn ở góc trên (chỉ để lại dấu X, không thêm chữ)
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
                     }) {
@@ -267,23 +336,9 @@ struct ScreenCropTranslateView: View {
                             .background(Circle().fill(Color.black.opacity(0.65)))
                             .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
                     }
-                    
-                    Spacer()
-                    
-                    if isTranslating {
-                        HStack(spacing: 6) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            Text("Đang dịch...")
-                                .font(.caption.bold())
-                                .foregroundColor(.white)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Color.black.opacity(0.7)))
-                    }
                 }
-                .padding()
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
                 
                 Spacer()
                 
@@ -481,6 +536,15 @@ struct ScreenCropTranslateView: View {
         }
     }
     
+    /// Kích hoạt chụp & dịch nhanh vùng thoại trung tâm khi bấm Menu nổi
+    private func triggerDefaultSnapTranslation(containerSize: CGSize) {
+        let targetW = min(containerSize.width - 40, 360)
+        let targetH: CGFloat = 90
+        let rect = CGRect(x: (containerSize.width - targetW) / 2, y: containerSize.height * 0.45, width: targetW, height: targetH)
+        selectionRect = rect
+        processCropArea(rect: rect, containerSize: containerSize)
+    }
+
     /// Dịch nhanh câu người dùng nhập vào ô văn bản bên dưới
     private func executeQuickTranslate() {
         let trimmed = quickInputText.trimmingCharacters(in: .whitespacesAndNewlines)
