@@ -547,13 +547,6 @@ struct ScreenCropTranslateView: View {
             str.draw(in: CGRect(x: 20, y: safeSize.height * 0.45, width: safeSize.width - 40, height: 80))
         }
     }
-                DispatchQueue.main.async {
-                    self.isTranslating = false
-                    self.translatedResultText = result ?? "Lỗi dịch thuật."
-                }
-            }
-        }
-    }
     
     /// Kích hoạt chụp & dịch nhanh vùng thoại trung tâm khi bấm Menu nổi
     private func triggerDefaultSnapTranslation(containerSize: CGSize) {
