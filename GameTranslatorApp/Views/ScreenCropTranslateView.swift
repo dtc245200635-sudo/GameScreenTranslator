@@ -21,6 +21,37 @@ struct ScreenCropTranslateView: View {
     @State private var translatedResultText: String = ""
     @State private var isTranslating: Bool = false
     
+    // Ngôn ngữ dịch 2 chiều linh hoạt
+    @State private var sourceLang: String = AppSettings.sourceLanguage
+    @State private var targetLang: String = AppSettings.targetLanguage
+    
+    // Nhập để dịch ngay bên dưới
+    @State private var quickInputText: String = ""
+    @State private var quickResultText: String = ""
+    @State private var isQuickTranslating: Bool = false
+    
+    let allLanguages: [(code: String, name: String)] = [
+        ("id-ID", "Tiếng Indonesia"),
+        ("vi-VN", "Tiếng Việt"),
+        ("en-US", "Tiếng Anh"),
+        ("ja-JP", "Tiếng Nhật"),
+        ("zh-Hans", "Tiếng Trung"),
+        ("ko-KR", "Tiếng Hàn"),
+        ("th-TH", "Tiếng Thái"),
+        ("es-ES", "Tây Ban Nha"),
+        ("ru-RU", "Tiếng Nga"),
+        ("fr-FR", "Tiếng Pháp"),
+        ("de-DE", "Tiếng Đức")
+    ]
+    
+    private var sourceLangName: String {
+        allLanguages.first(where: { $0.code == sourceLang })?.name ?? "Tiếng Indonesia"
+    }
+    
+    private var targetLangName: String {
+        allLanguages.first(where: { $0.code == targetLang })?.name ?? "Tiếng Việt"
+    }
+    
     private let ocrService = OCRService()
     private let translationService = TranslationService()
 
@@ -156,48 +187,134 @@ struct ScreenCropTranslateView: View {
                 
                 Spacer()
                 
-                // MỤC MỚI: Thanh chọn ngôn ngữ ở dưới cùng màn hình (Y hệt ảnh người dùng gửi)
-                HStack(spacing: 8) {
-                    // Hộp bên trái: Ngôn ngữ nguồn (Tiếng Indonesia ▼)
-                    HStack {
-                        Text("Tiếng Indonesia")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
-                        Spacer()
-                        Image(systemName: "arrowtriangle.down.fill")
-                            .font(.system(size: 9))
-                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                // MỤC MỚI: BẢNG DỊCH 2 CHIỀU & Ô NHẬP DỊCH NHANH Ở DƯỚI CÙNG
+                VStack(spacing: 8) {
+                    // HÀNG 1: [ Ngôn ngữ nguồn ▼ ] ⇄ [ Ngôn ngữ đích ▼ ]
+                    HStack(spacing: 8) {
+                        // Hộp bên trái: Chọn ngôn ngữ nguồn
+                        Menu {
+                            ForEach(allLanguages, id: \.code) { lang in
+                                Button(lang.name) {
+                                    sourceLang = lang.code
+                                    AppSettings.sourceLanguage = lang.code
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text(sourceLangName)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                                    .lineLimit(1)
+                                Spacer()
+                                Image(systemName: "arrowtriangle.down.fill")
+                                    .font(.system(size: 8))
+                                    .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
+                        }
+                        
+                        // Nút hoán đổi ⇄ ở giữa
+                        Button(action: {
+                            let temp = sourceLang
+                            sourceLang = targetLang
+                            targetLang = temp
+                            AppSettings.sourceLanguage = sourceLang
+                            AppSettings.targetLanguage = targetLang
+                        }) {
+                            Image(systemName: "arrow.left.arrow.right")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Circle().fill(Color.slateDark))
+                        }
+                        
+                        // Hộp bên phải: Chọn ngôn ngữ đích
+                        Menu {
+                            ForEach(allLanguages, id: \.code) { lang in
+                                Button(lang.name) {
+                                    targetLang = lang.code
+                                    AppSettings.targetLanguage = lang.code
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text(targetLangName)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                                    .lineLimit(1)
+                                Spacer()
+                                Image(systemName: "arrowtriangle.down.fill")
+                                    .font(.system(size: 8))
+                                    .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
+                        }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 9)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
                     
-                    // Nút hoán đổi ⇄ ở giữa
-                    Button(action: {}) {
-                        Image(systemName: "arrow.left.arrow.right")
-                            .font(.system(size: 13, weight: .bold))
+                    // HÀNG 2: MỤC NHẬP ĐỂ DỊCH NGAY BÊN DƯỚI
+                    HStack(spacing: 8) {
+                        TextField("Nhập từ hoặc câu thoại để dịch ngay...", text: $quickInputText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemGray6)))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 4)
+                            .font(.system(size: 12))
+                        
+                        Button(action: executeQuickTranslate) {
+                            HStack(spacing: 4) {
+                                if isQuickTranslating {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Text("Dịch")
+                                        .font(.system(size: 12, weight: .bold))
+                                    Image(systemName: "arrow.right")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue))
+                        }
                     }
                     
-                    // Hộp bên phải: Ngôn ngữ đích (Tiếng Việt ▼)
-                    HStack {
-                        Text("Tiếng Việt")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
-                        Spacer()
-                        Image(systemName: "arrowtriangle.down.fill")
-                            .font(.system(size: 9))
-                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                    // HÀNG 3: HIỂN THỊ KẾT QUẢ DỊCH CỦA Ô NHẬP
+                    if !quickResultText.isEmpty {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Bản dịch (\(targetLangName)):")
+                                    .font(.caption2.bold())
+                                    .foregroundColor(.green)
+                                Text(quickResultText)
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(.white)
+                            }
+                            Spacer()
+                            Button(action: {
+                                UIPasteboard.general.string = quickResultText
+                            }) {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                    .padding(6)
+                                    .background(Circle().fill(Color.gray.opacity(0.5)))
+                            }
+                        }
+                        .padding(10)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.slateDark))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.green.opacity(0.5), lineWidth: 1))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 9)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
                 }
                 .padding(.horizontal, 14)
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
+                .background(Color.black.opacity(0.75).edgesIgnoringSafeArea(.bottom))
             }
         }
     }
@@ -249,6 +366,22 @@ struct ScreenCropTranslateView: View {
                     self.isTranslating = false
                     self.translatedResultText = result ?? "Lỗi dịch thuật."
                 }
+            }
+        }
+    }
+    
+    /// Dịch nhanh câu người dùng nhập vào ô văn bản bên dưới
+    private func executeQuickTranslate() {
+        let trimmed = quickInputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        isQuickTranslating = true
+        quickResultText = ""
+        
+        translationService.translate(text: trimmed, from: sourceLang, to: targetLang) { result in
+            DispatchQueue.main.async {
+                self.isQuickTranslating = false
+                self.quickResultText = result ?? "Không thể dịch câu này."
             }
         }
     }
