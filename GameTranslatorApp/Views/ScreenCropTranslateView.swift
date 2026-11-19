@@ -2,6 +2,7 @@ import SwiftUI
 import Vision
 import CoreVideo
 import CoreMedia
+import AVFoundation
 
 /// Màn hình Đóng băng & Cho phép người dùng chạm/kéo khoanh vùng câu thoại cần dịch
 struct ScreenCropTranslateView: View {
@@ -258,9 +259,9 @@ struct ScreenCropTranslateView: View {
                         }
                     }
                     
-                    // HÀNG 2: MỤC NHẬP ĐỂ DỊCH NGAY BÊN DƯỚI
+                    // HÀNG 2: MỤC ĐỂ CHỮ "NHẬP ĐỂ DỊCH"
                     HStack(spacing: 8) {
-                        TextField("Nhập từ hoặc câu thoại để dịch ngay...", text: $quickInputText)
+                        TextField("Nhập để dịch...", text: $quickInputText)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemGray6)))
@@ -286,7 +287,7 @@ struct ScreenCropTranslateView: View {
                         }
                     }
                     
-                    // HÀNG 3: HIỂN THỊ KẾT QUẢ DỊCH CỦA Ô NHẬP
+                    // HÀNG 3: HIỂN THỊ KẾT QUẢ - CHỈ CÓ BIỂU TƯỢNG PHÁT ÂM VÀ SAO CHÉP (KHÔNG CÓ CHỮ)
                     if !quickResultText.isEmpty {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
@@ -298,14 +299,25 @@ struct ScreenCropTranslateView: View {
                                     .foregroundColor(.white)
                             }
                             Spacer()
+                            
+                            // Chỉ có biểu tượng phát âm (🔊)
+                            Button(action: speakQuickResult) {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white)
+                                    .frame(width: 28, height: 28)
+                                    .background(Circle().fill(Color(UIColor.systemGray5)))
+                            }
+                            
+                            // Chỉ có biểu tượng sao chép (📋)
                             Button(action: {
                                 UIPasteboard.general.string = quickResultText
                             }) {
-                                Image(systemName: "doc.on.doc")
-                                    .font(.caption)
+                                Image(systemName: "doc.on.doc.fill")
+                                    .font(.system(size: 11))
                                     .foregroundColor(.white)
-                                    .padding(6)
-                                    .background(Circle().fill(Color.gray.opacity(0.5)))
+                                    .frame(width: 28, height: 28)
+                                    .background(Circle().fill(Color(UIColor.systemGray5)))
                             }
                         }
                         .padding(10)
@@ -385,6 +397,15 @@ struct ScreenCropTranslateView: View {
                 self.quickResultText = result ?? "Không thể dịch câu này."
             }
         }
+    }
+    
+    /// Phát âm giọng đọc câu vừa dịch
+    private func speakQuickResult() {
+        guard !quickResultText.isEmpty else { return }
+        let utterance = AVSpeechUtterance(string: quickResultText)
+        utterance.voice = AVSpeechSynthesisVoice(language: targetLang)
+        let synthesizer = AVSpeechSynthesizer()
+        synthesizer.speak(utterance)
     }
 }
 
