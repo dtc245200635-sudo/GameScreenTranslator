@@ -82,24 +82,125 @@ struct ScreenCropTranslateView: View {
                     }
                     
                     // Lớp tối phủ mờ xung quanh khi đang khoanh vùng
-                    Color.black.opacity(0.35)
+                    Color.black.opacity(0.4)
                     
-                    // 2. Khung chữ nhật khoanh vùng khi người dùng kéo tay
+                    // NẾU CHƯA KHOANH VÙNG: HIỂN THỊ CÁC Ô GỢI Ý CHẠM ĐỂ DỊCH (CHUẨN ẢNH NGƯỜI DÙNG GỬI)
+                    if selectionRect.width <= 10 && translatedResultText.isEmpty {
+                        VStack(spacing: 20) {
+                            // Ô Quest Objective gợi ý
+                            Button(action: {
+                                let targetW = min(geo.size.width - 40, 340)
+                                let targetH: CGFloat = 80
+                                let rect = CGRect(x: (geo.size.width - targetW) / 2, y: geo.size.height * 0.28, width: targetW, height: targetH)
+                                selectionRect = rect
+                                processCropArea(rect: rect, containerSize: geo.size)
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        HStack {
+                                            Text("📜 Quest Objective:")
+                                                .font(.caption.bold())
+                                                .foregroundColor(.yellow)
+                                            Spacer()
+                                            Text("[Chạm để dịch]")
+                                                .font(.caption2.bold())
+                                                .foregroundColor(.blue)
+                                        }
+                                        Text("\"Kalahkan 5 monster bayangan di hutan berkabut...\"")
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .padding(12)
+                                .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.75)))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            // Ô Khung thoại NPC gợi ý
+                            Button(action: {
+                                let targetW = min(geo.size.width - 40, 340)
+                                let targetH: CGFloat = 90
+                                let rect = CGRect(x: (geo.size.width - targetW) / 2, y: geo.size.height * 0.50, width: targetW, height: targetH)
+                                selectionRect = rect
+                                processCropArea(rect: rect, containerSize: geo.size)
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        HStack {
+                                            Text("🇮🇩 \(sourceLangName) (Khung thoại NPC)")
+                                                .font(.caption.bold())
+                                                .foregroundColor(.cyan)
+                                            Spacer()
+                                            Text("[Chạm để dịch]")
+                                                .font(.caption2.bold())
+                                                .foregroundColor(.blue)
+                                        }
+                                        Text("\"Segel kuno di gunung berapi telah rusak. Kita harus bergegas trước khi quái thú trốn thoát!\"")
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .padding(12)
+                                .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.75)))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    
+                    // 2. KHUNG NGẮM VIEWFINDER 4 GÓC BO TRÒN TRẮNG CHUẨN THEO ẢNH NGƯỜI DÙNG GỬI
                     if selectionRect.width > 10 && selectionRect.height > 10 {
-                        Rectangle()
-                            .path(in: selectionRect)
-                            .stroke(Color.green, style: StrokeStyle(lineWidth: 2.5, dash: [6, 3]))
-                            .background(Rectangle().path(in: selectionRect).fill(Color.green.opacity(0.2)))
+                        ZStack {
+                            // Nền mờ nhẹ bên trong vùng ngắm
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.white.opacity(0.06))
+                                .frame(width: selectionRect.width, height: selectionRect.height)
+                                .position(x: selectionRect.midX, y: selectionRect.midY)
+                            
+                            // 4 góc bo tròn màu trắng
+                            ViewfinderCorners(color: .white, lineWidth: 4, length: min(28, max(16, selectionRect.width / 4)), cornerRadius: 14)
+                                .frame(width: selectionRect.width, height: selectionRect.height)
+                                .position(x: selectionRect.midX, y: selectionRect.midY)
+                                .shadow(color: .black.opacity(0.7), radius: 6)
+                        }
                     }
                     
                     // 3. Khung popup hiển thị kết quả dịch đè lên câu thoại
                     if !translatedResultText.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
-                                Text("🇻🇳 Bản dịch tiếng Việt")
+                                Text("🇻🇳 Bản dịch (\(targetLangName)):")
                                     .font(.caption2.bold())
                                     .foregroundColor(.green)
                                 Spacer()
+                                
+                                // Biểu tượng phát âm (chỉ icon, không chữ)
+                                Button(action: {
+                                    let utterance = AVSpeechUtterance(string: translatedResultText)
+                                    utterance.voice = AVSpeechSynthesisVoice(language: targetLang)
+                                    let synthesizer = AVSpeechSynthesizer()
+                                    synthesizer.speak(utterance)
+                                }) {
+                                    Image(systemName: "speaker.wave.2.fill")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.white)
+                                        .frame(width: 24, height: 24)
+                                        .background(Circle().fill(Color(UIColor.systemGray5)))
+                                }
+                                
+                                // Biểu tượng sao chép (chỉ icon 2 trang giấy chồng, không chữ)
+                                Button(action: {
+                                    UIPasteboard.general.string = translatedResultText
+                                }) {
+                                    Image(systemName: "doc.on.doc.fill")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.white)
+                                        .frame(width: 24, height: 24)
+                                        .background(Circle().fill(Color(UIColor.systemGray5)))
+                                }
+                                
                                 Button(action: {
                                     translatedResultText = ""
                                 }) {
@@ -449,4 +550,46 @@ extension UIImage {
 
 extension Color {
     static let slateDark = Color(red: 0.08, green: 0.11, blue: 0.16)
+}
+
+/// Khung ngắm Viewfinder với 4 góc bo tròn màu trắng chuẩn theo ảnh người dùng gửi
+struct ViewfinderCorners: View {
+    var color: Color = .white
+    var lineWidth: CGFloat = 4
+    var length: CGFloat = 26
+    var cornerRadius: CGFloat = 14
+    
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            
+            Path { path in
+                // Góc trên - trái (Top-Left)
+                path.move(to: CGPoint(x: 0, y: length))
+                path.addLine(to: CGPoint(x: 0, y: cornerRadius))
+                path.addQuadCurve(to: CGPoint(x: cornerRadius, y: 0), control: CGPoint(x: 0, y: 0))
+                path.addLine(to: CGPoint(x: length, y: 0))
+                
+                // Góc trên - phải (Top-Right)
+                path.move(to: CGPoint(x: w - length, y: 0))
+                path.addLine(to: CGPoint(x: w - cornerRadius, y: 0))
+                path.addQuadCurve(to: CGPoint(x: w, y: cornerRadius), control: CGPoint(x: w, y: 0))
+                path.addLine(to: CGPoint(x: w, y: length))
+                
+                // Góc dưới - phải (Bottom-Right)
+                path.move(to: CGPoint(x: w, y: h - length))
+                path.addLine(to: CGPoint(x: w, y: h - cornerRadius))
+                path.addQuadCurve(to: CGPoint(x: w - cornerRadius, y: h), control: CGPoint(x: w, y: h))
+                path.addLine(to: CGPoint(x: w - length, y: h))
+                
+                // Góc dưới - trái (Bottom-Left)
+                path.move(to: CGPoint(x: length, y: h))
+                path.addLine(to: CGPoint(x: cornerRadius, y: h))
+                path.addQuadCurve(to: CGPoint(x: 0, y: h - cornerRadius), control: CGPoint(x: 0, y: h))
+                path.addLine(to: CGPoint(x: 0, y: h - length))
+            }
+            .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
+        }
+    }
 }
