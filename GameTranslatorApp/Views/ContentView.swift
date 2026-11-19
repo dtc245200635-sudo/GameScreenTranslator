@@ -14,11 +14,11 @@ struct ContentView: View {
     @State private var testNotificationMessage = ""
     
     let supportedLanguages: [(code: String, name: String, flag: String)] = [
-        ("id-ID", "Tiếng Indonesia (Bahasa)", "🇮🇩"),
+        ("id-ID", "Tiếng Indonesia (Bahasa Indonesia)", "🇮🇩"),
         ("en-US", "Tiếng Anh (English)", "🇺🇸"),
         ("ja-JP", "Tiếng Nhật (日本語)", "🇯🇵"),
-        ("zh-Hans", "Tiếng Trung Giản thể (简体)", "🇨🇳"),
-        ("zh-Hant", "Tiếng Trung Phồn thể (繁體)", "🇭🇰"),
+        ("zh-Hans", "Tiếng Trung Giản thể (简体中文)", "🇨🇳"),
+        ("zh-Hant", "Tiếng Trung Phồn thể (繁體中文)", "🇭🇰"),
         ("ko-KR", "Tiếng Hàn (한국어)", "🇰🇷"),
         ("th-TH", "Tiếng Thái (ไทย)", "🇹🇭"),
         ("ru-RU", "Tiếng Nga (Русский)", "🇷🇺"),
@@ -38,77 +38,29 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             Form {
-                // MARK: - Mục 1: Trạng thái quyền
-                Section(header: Label("Quyền hệ thống", systemImage: "bell.badge")) {
+                // MARK: - Mục 1: Chọn Ngôn Ngữ Game Cần Dịch (Đưa lên đầu để dễ thấy nhất)
+                Section(header: Label("Chọn Ngôn Ngữ Game Cần Dịch", systemImage: "globe")) {
+                    Picker("Ngôn ngữ gốc", selection: $sourceLang) {
+                        ForEach(supportedLanguages, id: \.code) { item in
+                            Text("\(item.flag) \(item.name)").tag(item.code)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .onChange(of: sourceLang) { newValue in
+                        AppSettings.sourceLanguage = newValue
+                    }
+                    
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Thông báo biểu ngữ (Banner)")
-                                .font(.body.weight(.medium))
-                            Text(permissionManager.isNotificationAuthorized ? "Đã cho phép nhận bản dịch" : "Chưa cấp quyền thông báo")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
+                        Text("Dịch sang")
                         Spacer()
-                        
-                        if permissionManager.isNotificationAuthorized {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(.green)
-                                .font(.title2)
-                        } else {
-                            Button("Cấp quyền") {
-                                if permissionManager.authorizationStatus == .denied {
-                                    permissionManager.openSettings()
-                                } else {
-                                    permissionManager.requestNotificationPermission()
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.blue)
-                        }
-                    }
-                    
-                    if permissionManager.isNotificationAuthorized {
-                        Button(action: sendTestNotification) {
-                            Label("Thử bắn thông báo mẫu", systemImage: "paperplane")
-                                .font(.subheadline)
-                        }
+                        Text("🇻🇳 Tiếng Việt")
+                            .font(.body.weight(.semibold))
+                            .foregroundColor(.blue)
                     }
                 }
                 
-                // MARK: - Mục 2: Nút kích hoạt Broadcast ReplayKit
-                Section(header: Label("Kích hoạt Quay màn hình", systemImage: "record.circle")) {
-                    Toggle("Cho phép Extension dịch ngầm", isOn: $isServiceEnabled)
-                        .onChange(of: isServiceEnabled) { value in
-                            AppSettings.isServiceEnabled = value
-                        }
-                    
-                    VStack(alignment: .center, spacing: 14) {
-                        Text("Bấm vào biểu tượng bên dưới, chọn **GameTranslator** và bấm **Bắt đầu truyền phát**:")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.top, 4)
-                        
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.blue.opacity(0.1))
-                                .frame(height: 90)
-                            
-                            VStack(spacing: 6) {
-                                BroadcastPickerView(tintColor: .systemBlue)
-                                    .frame(width: 50, height: 50)
-                                Text("Chạm để bật ReplayKit")
-                                    .font(.caption2.weight(.semibold))
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-                
-                // MARK: - Mục 3: CHỌN ĐỂ DỊCH CÂU THOẠI (Region of Interest)
-                Section(header: Label("Chọn vùng để dịch câu thoại", systemImage: "crop")) {
+                // MARK: - Mục 2: Chọn Vùng Để Dịch Câu Thoại (ROI)
+                Section(header: Label("Chọn Vùng Dịch Câu Thoại", systemImage: "crop")) {
                     ForEach(regionOptions, id: \.id) { opt in
                         HStack(alignment: .center, spacing: 12) {
                             Image(systemName: opt.icon)
@@ -141,24 +93,39 @@ struct ContentView: View {
                     }
                 }
                 
-                // MARK: - Mục 4: Cấu hình ngôn ngữ & Tần suất quét
-                Section(header: Label("Cấu hình Dịch thuật", systemImage: "character.book.closed")) {
-                    Picker("Ngôn ngữ game", selection: $sourceLang) {
-                        ForEach(supportedLanguages, id: \.code) { item in
-                            Text("\(item.flag) \(item.name)").tag(item.code)
+                // MARK: - Mục 3: Kích hoạt Quay Màn Hình (ReplayKit)
+                Section(header: Label("Kích hoạt Quay màn hình", systemImage: "record.circle")) {
+                    Toggle("Cho phép Extension dịch ngầm", isOn: $isServiceEnabled)
+                        .onChange(of: isServiceEnabled) { value in
+                            AppSettings.isServiceEnabled = value
+                        }
+                    
+                    VStack(alignment: .center, spacing: 14) {
+                        Text("Bấm vào biểu tượng bên dưới, chọn **GameTranslator** và bấm **Bắt đầu truyền phát**:")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 4)
+                        
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.blue.opacity(0.1))
+                                .frame(height: 90)
+                            
+                            VStack(spacing: 6) {
+                                BroadcastPickerView(tintColor: .systemBlue)
+                                    .frame(width: 50, height: 50)
+                                Text("Chạm để bật ReplayKit")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(.blue)
+                            }
                         }
                     }
-                    .onChange(of: sourceLang) { newValue in
-                        AppSettings.sourceLanguage = newValue
-                    }
-                    
-                    HStack {
-                        Text("Dịch sang")
-                        Spacer()
-                        Text("🇻🇳 Tiếng Việt")
-                            .foregroundColor(.secondary)
-                    }
-                    
+                    .padding(.vertical, 4)
+                }
+                
+                // MARK: - Mục 4: Tần Suất Quét Màn Hình
+                Section(header: Label("Tần Suất Quét", systemImage: "timer")) {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("Tần suất quét màn hình:")
@@ -176,25 +143,53 @@ struct ContentView: View {
                     .padding(.vertical, 4)
                 }
                 
-                // MARK: - Mục 5: TÍNH NĂNG NÚT ẢO KÍCH HOẠT (Assistive Touch / Gõ mặt lưng)
-                Section(header: Label("Bật nút ảo để dịch tức thì", systemImage: "hand.tap")) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("💡 Mẹo dùng như Nút Home ảo (AssistiveTouch):")
+                // MARK: - Mục 5: Quyền Hệ Thống
+                Section(header: Label("Quyền Thông Báo (Banner)", systemImage: "bell.badge")) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Thông báo biểu ngữ (Banner)")
+                                .font(.body.weight(.medium))
+                            Text(permissionManager.isNotificationAuthorized ? "Đã cấp quyền hiển thị bản dịch" : "Chưa cấp quyền thông báo")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        if permissionManager.isNotificationAuthorized {
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundColor(.green)
+                                .font(.title2)
+                        } else {
+                            Button("Cấp quyền") {
+                                if permissionManager.authorizationStatus == .denied {
+                                    permissionManager.openSettings()
+                                } else {
+                                    permissionManager.requestNotificationPermission()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                        }
+                    }
+                    
+                    if permissionManager.isNotificationAuthorized {
+                        Button(action: sendTestNotification) {
+                            Label("Thử bắn thông báo mẫu", systemImage: "paperplane")
+                                .font(.subheadline)
+                        }
+                    }
+                }
+                
+                // MARK: - Mục 6: Nút Ảo (Assistive Touch / Gõ Mặt Lưng)
+                Section(header: Label("Mẹo: Dùng Nút Home Ảo Khi Chơi Game", systemImage: "hand.tap")) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Cách gán nút ảo kích hoạt:")
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(.blue)
-                        
-                        Text("Trên iOS, bạn có thể biến cử chỉ **Gõ 2 lần mặt lưng (Back Tap)** hoặc **Chạm nút AssistiveTouch** thành nút kích hoạt dịch cực kỳ tiện lợi:")
+                        Text("Vào **Cài đặt iPhone** -> **Trợ năng (Accessibility)** -> **Cảm ứng (Touch)** -> Kéo xuống dưới chọn **Chạm vào mặt lưng (Back Tap)** -> Chọn **Chạm hai lần** để gán mở nhanh bản dịch.")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("1. Vào **Cài đặt iPhone** -> **Trợ năng (Accessibility)**.")
-                            Text("2. Chọn **Cảm ứng (Touch)** -> Kéo xuống dưới chọn **Chạm vào mặt lưng (Back Tap)**.")
-                            Text("3. Chọn **Chạm hai lần** -> Gán hành động hoặc phím tắt mở GameTranslator.")
-                        }
-                        .font(.caption2)
-                        .foregroundColor(.primary)
-                        .padding(.top, 2)
                     }
                     .padding(.vertical, 4)
                 }
