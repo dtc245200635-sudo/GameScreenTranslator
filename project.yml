@@ -1,0 +1,46 @@
+name: GameScreenTranslator
+options:
+  bundleIdPrefix: com.yourcompany.gametranslator
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    TARGETED_DEVICE_FAMILY: "1,2" # iPhone & iPad
+
+targets:
+  GameTranslatorApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: GameTranslatorApp
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_NAME: "GameTranslator"
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.gametranslator
+        INFOPLIST_FILE: GameTranslatorApp/Info.plist
+        CODE_SIGN_ENTITLEMENTS: GameTranslatorApp/GameTranslatorApp.entitlements
+        ENABLE_BITCODE: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    dependencies:
+      - target: GameTranslatorExtension
+
+  GameTranslatorExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: GameTranslatorExtension
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_NAME: "GameTranslatorExtension"
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.gametranslator.extension
+        INFOPLIST_FILE: GameTranslatorExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: GameTranslatorExtension/GameTranslatorExtension.entitlements
+        ENABLE_BITCODE: false
