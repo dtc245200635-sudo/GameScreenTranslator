@@ -1,5 +1,7 @@
 import SwiftUI
 import Vision
+import CoreVideo
+import CoreMedia
 
 /// Màn hình Đóng băng & Cho phép người dùng chạm/kéo khoanh vùng câu thoại cần dịch
 struct ScreenCropTranslateView: View {
