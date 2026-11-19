@@ -165,6 +165,46 @@ struct ScreenCropTranslateView: View {
                                 .position(x: selectionRect.midX, y: selectionRect.midY)
                                 .shadow(color: .black.opacity(0.7), radius: 6)
                         }
+                        
+                        // Nút tùy chỉnh hẹp / rộng cho 4 góc trực tiếp
+                        HStack(spacing: 8) {
+                            Button(action: {
+                                let newW = max(120, selectionRect.width - 30)
+                                let newX = selectionRect.midX - newW / 2
+                                selectionRect = CGRect(x: newX, y: selectionRect.origin.y, width: newW, height: selectionRect.height)
+                                processCropArea(rect: selectionRect, containerSize: geo.size)
+                            }) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "minus.magnifyingglass")
+                                    Text("Hẹp lại")
+                                }
+                                .font(.caption2.bold())
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color.black.opacity(0.8)))
+                                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                            }
+                            
+                            Button(action: {
+                                let newW = min(geo.size.width - 20, selectionRect.width + 30)
+                                let newX = max(10, selectionRect.midX - newW / 2)
+                                selectionRect = CGRect(x: newX, y: selectionRect.origin.y, width: newW, height: selectionRect.height)
+                                processCropArea(rect: selectionRect, containerSize: geo.size)
+                            }) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "plus.magnifyingglass")
+                                    Text("Rộng ra")
+                                }
+                                .font(.caption2.bold())
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color.black.opacity(0.8)))
+                                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                            }
+                        }
+                        .position(x: selectionRect.midX, y: max(25, selectionRect.minY - 18))
                     }
                     
                     // 3. Khung popup hiển thị kết quả dịch đè lên câu thoại
