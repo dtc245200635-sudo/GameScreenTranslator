@@ -61,6 +61,22 @@ struct ContentView: View {
                 
                 // MARK: - Mục 2: Chọn Vùng Để Dịch Câu Thoại (ROI)
                 Section(header: Label("Chọn Vùng Dịch Câu Thoại", systemImage: "crop")) {
+                    NavigationLink(destination: ScreenCropTranslateView()) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "hand.draw.fill")
+                                .font(.title3)
+                                .foregroundColor(.orange)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Chế độ: Dừng màn hình & Khoanh vùng")
+                                    .font(.subheadline.bold())
+                                Text("Chạm/kéo ngón tay để khoanh chính xác câu thoại cần dịch")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    
                     ForEach(regionOptions, id: \.id) { opt in
                         HStack(alignment: .center, spacing: 12) {
                             Image(systemName: opt.icon)
