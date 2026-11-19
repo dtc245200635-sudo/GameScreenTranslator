@@ -167,13 +167,13 @@ struct ScreenCropTranslateView: View {
                         }
                     }
                     
-                    // 3. Khung popup hiển thị kết quả dịch đè lên câu thoại
+                    // 3. Khung popup hiển thị kết quả chuẩn Google Dịch
                     if !translatedResultText.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
-                                Text("🇻🇳 Bản dịch (\(targetLangName)):")
-                                    .font(.caption2.bold())
-                                    .foregroundColor(.green)
+                                Text("GOOGLE DỊCH (\(sourceLangName.uppercased()) ➔ \(targetLangName.uppercased())):")
+                                    .font(.system(size: 10, weight: .heavy))
+                                    .foregroundColor(Color(red: 0.2, green: 0.85, blue: 0.6))
                                 Spacer()
                                 
                                 // Biểu tượng phát âm (chỉ icon, không chữ)
@@ -440,13 +440,13 @@ struct ScreenCropTranslateView: View {
                         }
                     }
                     
-                    // HÀNG 3: HIỂN THỊ KẾT QUẢ - CHỈ CÓ BIỂU TƯỢNG PHÁT ÂM VÀ SAO CHÉP (KHÔNG CÓ CHỮ)
+                    // HÀNG 3: HIỂN THỊ KẾT QUẢ - CHUẨN GOOGLE DỊCH
                     if !quickResultText.isEmpty {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Bản dịch (\(targetLangName)):")
-                                    .font(.caption2.bold())
-                                    .foregroundColor(.green)
+                                Text("GOOGLE DỊCH (\(sourceLangName.uppercased()) ➔ \(targetLangName.uppercased())):")
+                                    .font(.system(size: 9, weight: .heavy))
+                                    .foregroundColor(Color(red: 0.2, green: 0.85, blue: 0.6))
                                 Text(quickResultText)
                                     .font(.subheadline.bold())
                                     .foregroundColor(.white)
