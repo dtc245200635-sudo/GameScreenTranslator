@@ -31,6 +31,7 @@ struct ScreenCropTranslateView: View {
     @State private var isQuickTranslating: Bool = false
     
     let allLanguages: [(code: String, name: String)] = [
+        ("auto", "🔍 Tự động phát hiện"),
         ("id-ID", "Tiếng Indonesia"),
         ("vi-VN", "Tiếng Việt"),
         ("en-US", "Tiếng Anh"),
