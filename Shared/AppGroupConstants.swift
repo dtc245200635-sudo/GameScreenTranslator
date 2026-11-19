@@ -2,7 +2,7 @@ import Foundation
 
 /// Chứa các hằng số cấu hình dùng chung giữa Main App và Broadcast Extension
 public enum AppGroupConstants {
-    /// Định danh App Group chung - hãy đổi thành Bundle Seed ID của Apple Developer team nếu triển khai thực tế
+    /// Định danh App Group chung
     public static let suiteName = "group.com.yourcompany.gametranslator"
     
     // Các Keys lưu trong UserDefaults
@@ -12,6 +12,8 @@ public enum AppGroupConstants {
     public static let isServiceEnabledKey = "isServiceEnabled"
     public static let translateApiKey = "translateApiKey"
     public static let textFilterLengthKey = "textFilterLength"
+    public static let scanRegionKey = "scanRegion"           // Vùng chọn dịch: "bottom", "top", "all"
+    public static let triggerModeKey = "triggerMode"         // "auto" hoặc "onDemand"
     
     // Notification ID
     public static let notificationIdentifier = "GAME_SCREEN_TRANSLATION_BANNER"

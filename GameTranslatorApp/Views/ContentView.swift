@@ -6,6 +6,7 @@ struct ContentView: View {
     
     @State private var sourceLang: String = AppSettings.sourceLanguage
     @State private var targetLang: String = AppSettings.targetLanguage
+    @State private var scanRegion: String = AppSettings.scanRegion
     @State private var scanInterval: Double = AppSettings.scanInterval
     @State private var isServiceEnabled: Bool = AppSettings.isServiceEnabled
     
@@ -13,8 +14,8 @@ struct ContentView: View {
     @State private var testNotificationMessage = ""
     
     let supportedLanguages: [(code: String, name: String, flag: String)] = [
-        ("en-US", "Tiếng Anh (English)", "🇺🇸"),
         ("id-ID", "Tiếng Indonesia (Bahasa)", "🇮🇩"),
+        ("en-US", "Tiếng Anh (English)", "🇺🇸"),
         ("ja-JP", "Tiếng Nhật (日本語)", "🇯🇵"),
         ("zh-Hans", "Tiếng Trung Giản thể (简体)", "🇨🇳"),
         ("zh-Hant", "Tiếng Trung Phồn thể (繁體)", "🇭🇰"),
@@ -26,6 +27,12 @@ struct ContentView: View {
         ("fr-FR", "Tiếng Pháp (Français)", "🇫🇷"),
         ("de-DE", "Tiếng Đức (Deutsch)", "🇩🇪"),
         ("it-IT", "Tiếng Ý (Italiano)", "🇮🇹")
+    ]
+    
+    let regionOptions: [(id: String, title: String, subtitle: String, icon: String)] = [
+        ("bottom", "Phụ đề hội thoại (Nửa dưới)", "Chỉ quét khung thoại NPC, bỏ qua nút bấm & thanh máu", "captions.bubble"),
+        ("top", "Bảng nhiệm vụ (Nửa trên)", "Chỉ quét mục tiêu & quest log ở góc trên màn hình", "list.bullet.rectangle"),
+        ("all", "Toàn màn hình", "Quét toàn bộ mọi chữ xuất hiện trên màn hình", "viewfinder")
     ]
     
     var body: some View {
@@ -69,7 +76,7 @@ struct ContentView: View {
                     }
                 }
                 
-                // MARK: - Mục 2: Bật tắt dịch vụ & Kích hoạt Broadcast
+                // MARK: - Mục 2: Nút kích hoạt Broadcast ReplayKit
                 Section(header: Label("Kích hoạt Quay màn hình", systemImage: "record.circle")) {
                     Toggle("Cho phép Extension dịch ngầm", isOn: $isServiceEnabled)
                         .onChange(of: isServiceEnabled) { value in
@@ -77,7 +84,7 @@ struct ContentView: View {
                         }
                     
                     VStack(alignment: .center, spacing: 14) {
-                        Text("Bấm vào biểu tượng quay màn hình bên dưới, chọn **GameTranslator** và bấm **Bắt đầu truyền phát**:")
+                        Text("Bấm vào biểu tượng bên dưới, chọn **GameTranslator** và bấm **Bắt đầu truyền phát**:")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -100,7 +107,41 @@ struct ContentView: View {
                     .padding(.vertical, 4)
                 }
                 
-                // MARK: - Mục 3: Cấu hình ngôn ngữ & Tần suất
+                // MARK: - Mục 3: CHỌN ĐỂ DỊCH CÂU THOẠI (Region of Interest)
+                Section(header: Label("Chọn vùng để dịch câu thoại", systemImage: "crop")) {
+                    ForEach(regionOptions, id: \.id) { opt in
+                        HStack(alignment: .center, spacing: 12) {
+                            Image(systemName: opt.icon)
+                                .font(.title3)
+                                .foregroundColor(scanRegion == opt.id ? .blue : .secondary)
+                                .frame(width: 28)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(opt.title)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(.primary)
+                                Text(opt.subtitle)
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            if scanRegion == opt.id {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                                    .font(.body.bold())
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            scanRegion = opt.id
+                            AppSettings.scanRegion = opt.id
+                        }
+                    }
+                }
+                
+                // MARK: - Mục 4: Cấu hình ngôn ngữ & Tần suất quét
                 Section(header: Label("Cấu hình Dịch thuật", systemImage: "character.book.closed")) {
                     Picker("Ngôn ngữ game", selection: $sourceLang) {
                         ForEach(supportedLanguages, id: \.code) { item in
@@ -131,21 +172,29 @@ struct ContentView: View {
                             .onChange(of: scanInterval) { newValue in
                                 AppSettings.scanInterval = newValue
                             }
-                        
-                        Text("💡 Mẹo: 2.0s là mức tối ưu nhất giúp điện thoại không bị nóng và không tốn pin khi chơi game.")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 4)
                 }
                 
-                // MARK: - Mục 4: Hướng dẫn chi tiết
-                Section(header: Label("Cách sử dụng khi chơi game", systemImage: "gamecontroller")) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        StepRow(step: "1", title: "Cấp quyền thông báo", desc: "Đảm bảo mục Quyền hệ thống hiện dấu tích xanh.")
-                        StepRow(step: "2", title: "Bật quay màn hình", desc: "Chạm vào ô ReplayKit ở trên, chọn GameTranslator và bấm Bắt đầu.")
-                        StepRow(step: "3", title: "Mở game và trải nghiệm", desc: "Chuyển sang tựa game yêu thích. Khi màn hình xuất hiện phụ đề hoặc nhiệm vụ tiếng nước ngoài, bản dịch tiếng Việt sẽ rơi xuống từ mép trên màn hình.")
-                        StepRow(step: "4", title: "Dừng dịch", desc: "Bấm vào thanh trạng thái màu đỏ trên cùng của iPhone hoặc vào lại app để tắt truyền phát.")
+                // MARK: - Mục 5: TÍNH NĂNG NÚT ẢO KÍCH HOẠT (Assistive Touch / Gõ mặt lưng)
+                Section(header: Label("Bật nút ảo để dịch tức thì", systemImage: "hand.tap")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("💡 Mẹo dùng như Nút Home ảo (AssistiveTouch):")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.blue)
+                        
+                        Text("Trên iOS, bạn có thể biến cử chỉ **Gõ 2 lần mặt lưng (Back Tap)** hoặc **Chạm nút AssistiveTouch** thành nút kích hoạt dịch cực kỳ tiện lợi:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("1. Vào **Cài đặt iPhone** -> **Trợ năng (Accessibility)**.")
+                            Text("2. Chọn **Cảm ứng (Touch)** -> Kéo xuống dưới chọn **Chạm vào mặt lưng (Back Tap)**.")
+                            Text("3. Chọn **Chạm hai lần** -> Gán hành động hoặc phím tắt mở GameTranslator.")
+                        }
+                        .font(.caption2)
+                        .foregroundColor(.primary)
+                        .padding(.top, 2)
                     }
                     .padding(.vertical, 4)
                 }
@@ -162,8 +211,8 @@ struct ContentView: View {
     private func sendTestNotification() {
         let content = UNMutableNotificationContent()
         content.title = "🌐 Dịch Game (Thử nghiệm)"
-        content.subtitle = "Quest: Defeat the Fire Dragon in 3 minutes"
-        content.body = "Nhiệm vụ: Đánh bại Rồng Lửa trong vòng 3 phút!"
+        content.subtitle = "Misi: Kalahkan 5 monster bayangan di hutan berkabut"
+        content.body = "Nhiệm vụ: Đánh bại 5 quái vật bóng đêm trong khu rừng sương mù!"
         content.sound = nil
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1.0, repeats: false)
@@ -174,35 +223,9 @@ struct ContentView: View {
                 if let error = error {
                     self.testNotificationMessage = "Lỗi gửi: \(error.localizedDescription)"
                 } else {
-                    self.testNotificationMessage = "Đã gửi! Vui lòng vuốt về Home hoặc khóa màn hình trong 1 giây để xem Banner thông báo."
+                    self.testNotificationMessage = "Đã gửi! Vui lòng vuốt về Home trong 1 giây để xem Banner thông báo."
                 }
                 self.showingTestNotificationAlert = true
-            }
-        }
-    }
-}
-
-struct StepRow: View {
-    let step: String
-    let title: String
-    let desc: String
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.blue)
-                    .frame(width: 24, height: 24)
-                Text(step)
-                    .font(.caption.bold())
-                    .foregroundColor(.white)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                Text(desc)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
     }

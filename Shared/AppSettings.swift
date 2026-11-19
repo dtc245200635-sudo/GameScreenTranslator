@@ -26,18 +26,38 @@ public final class AppSettings {
         }
     }
     
+    /// Vùng màn hình được chọn để dịch câu thoại ("bottom": Nửa dưới phụ đề, "top": Nhiệm vụ trên, "all": Toàn màn hình)
+    public static var scanRegion: String {
+        get {
+            return userDefaults?.string(forKey: AppGroupConstants.scanRegionKey) ?? "bottom"
+        }
+        set {
+            userDefaults?.set(newValue, forKey: AppGroupConstants.scanRegionKey)
+        }
+    }
+    
+    /// Chế độ kích hoạt dịch: "auto" (liên tục theo chu kỳ) hoặc "onDemand" (khi có thoại mới)
+    public static var triggerMode: String {
+        get {
+            return userDefaults?.string(forKey: AppGroupConstants.triggerModeKey) ?? "auto"
+        }
+        set {
+            userDefaults?.set(newValue, forKey: AppGroupConstants.triggerModeKey)
+        }
+    }
+    
     /// Khoảng thời gian giữa 2 lần quét màn hình (giây) - chống nóng máy & lag game
     public static var scanInterval: Double {
         get {
             let val = userDefaults?.double(forKey: AppGroupConstants.scanIntervalKey) ?? 0
-            return val > 0 ? val : 2.0 // Mặc định 2.0s
+            return val > 0 ? val : 2.0
         }
         set {
             userDefaults?.set(newValue, forKey: AppGroupConstants.scanIntervalKey)
         }
     }
     
-    /// Độ dài tối thiểu của chuỗi ký tự nhận diện để bắt đầu dịch (bỏ qua icon, số linh tinh)
+    /// Độ dài tối thiểu của chuỗi ký tự nhận diện để bắt đầu dịch
     public static var minimumTextLength: Int {
         get {
             let val = userDefaults?.integer(forKey: AppGroupConstants.textFilterLengthKey) ?? 0

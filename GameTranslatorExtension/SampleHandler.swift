@@ -34,7 +34,6 @@ class SampleHandler: RPBroadcastSampleHandler {
         case .video:
             handleVideoBuffer(sampleBuffer)
         case .audioApp, .audioMic:
-            // Bỏ qua luồng âm thanh để giải phóng CPU và tránh tiêu hao năng lượng
             break
         @unknown default:
             break
@@ -42,22 +41,21 @@ class SampleHandler: RPBroadcastSampleHandler {
     }
 
     private func handleVideoBuffer(_ sampleBuffer: CMSampleBuffer) {
-        // Kiểm tra xem người dùng có đang bật dịch trong cài đặt không
         guard AppSettings.isServiceEnabled else { return }
 
         let currentTime = CFAbsoluteTimeGetCurrent()
         let interval = AppSettings.scanInterval
 
-        // Bước 1: Throttling thời gian (chỉ xử lý sau mỗi N giây, mặc định 2.0s)
+        // Bước 1: Throttling thời gian
         guard throttler.shouldProcess(currentTime: currentTime, interval: interval) else {
             return
         }
 
-        // Bước 2: Kiểm tra cờ xử lý - Nếu tác vụ trước chưa xong thì bỏ qua frame này ngay
+        // Bước 2: Kiểm tra cờ xử lý
         guard !isProcessing else { return }
         isProcessing = true
 
-        // Bước 3: Đưa vào queue riêng và bọc toàn bộ bằng autoreleasepool để giải phóng RAM ngay lập tức
+        // Bước 3: Đưa vào queue riêng và bọc toàn bộ bằng autoreleasepool
         processingQueue.async { [weak self] in
             guard let self = self else { return }
             
@@ -66,34 +64,34 @@ class SampleHandler: RPBroadcastSampleHandler {
                     self.isProcessing = false
                 }
 
-                // Trích xuất CVPixelBuffer từ CMSampleBuffer
                 guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
                     return
                 }
 
-                // Bước 4: Kiểm tra nhanh biến động màn hình (nếu ảnh tĩnh không đổi thì bỏ qua)
+                // Bước 4: Kiểm tra nhanh biến động màn hình
                 guard self.throttler.hasMeaningfulChange(pixelBuffer: pixelBuffer) else {
                     return
                 }
 
-                // Bước 5: Downscale ảnh về 720p để cứu bộ nhớ khỏi mức trần 50MB của Extension
+                // Bước 5: Downscale ảnh về 720p để bảo vệ mức trần 50MB RAM
                 guard let resizedBuffer = ImageProcessor.resize(pixelBuffer: pixelBuffer, targetWidth: 720) else {
                     return
                 }
 
                 let sourceLanguage = AppSettings.sourceLanguage
                 let targetLanguage = AppSettings.targetLanguage
+                let scanRegion = AppSettings.scanRegion
                 let minLength = AppSettings.minimumTextLength
 
-                // Bước 6: Nhận diện chữ bằng Vision Framework (.fast mode)
-                self.ocrService.recognizeText(from: resizedBuffer, language: sourceLanguage) { [weak self] recognizedText in
+                // Bước 6: Nhận diện chữ bằng Vision Framework theo vùng chọn (ROI)
+                self.ocrService.recognizeText(from: resizedBuffer, language: sourceLanguage, region: scanRegion) { [weak self] recognizedText in
                     guard let self = self,
                           let text = recognizedText,
                           text.count >= minLength else {
                         return
                     }
 
-                    // Bước 7: Dịch nội dung sang tiếng Việt (có in-memory cache)
+                    // Bước 7: Dịch nội dung sang tiếng Việt
                     self.translationService.translate(text: text, from: sourceLanguage, to: targetLanguage) { translatedText in
                         guard let translated = translatedText else { return }
 
