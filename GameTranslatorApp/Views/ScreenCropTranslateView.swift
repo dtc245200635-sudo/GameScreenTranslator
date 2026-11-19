@@ -165,46 +165,6 @@ struct ScreenCropTranslateView: View {
                                 .position(x: selectionRect.midX, y: selectionRect.midY)
                                 .shadow(color: .black.opacity(0.7), radius: 6)
                         }
-                        
-                        // Nút tùy chỉnh hẹp / rộng cho 4 góc trực tiếp
-                        HStack(spacing: 8) {
-                            Button(action: {
-                                let newW = max(120, selectionRect.width - 30)
-                                let newX = selectionRect.midX - newW / 2
-                                selectionRect = CGRect(x: newX, y: selectionRect.origin.y, width: newW, height: selectionRect.height)
-                                processCropArea(rect: selectionRect, containerSize: geo.size)
-                            }) {
-                                HStack(spacing: 3) {
-                                    Image(systemName: "minus.magnifyingglass")
-                                    Text("Hẹp lại")
-                                }
-                                .font(.caption2.bold())
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Capsule().fill(Color.black.opacity(0.8)))
-                                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
-                            }
-                            
-                            Button(action: {
-                                let newW = min(geo.size.width - 20, selectionRect.width + 30)
-                                let newX = max(10, selectionRect.midX - newW / 2)
-                                selectionRect = CGRect(x: newX, y: selectionRect.origin.y, width: newW, height: selectionRect.height)
-                                processCropArea(rect: selectionRect, containerSize: geo.size)
-                            }) {
-                                HStack(spacing: 3) {
-                                    Image(systemName: "plus.magnifyingglass")
-                                    Text("Rộng ra")
-                                }
-                                .font(.caption2.bold())
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Capsule().fill(Color.black.opacity(0.8)))
-                                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
-                            }
-                        }
-                        .position(x: selectionRect.midX, y: max(25, selectionRect.minY - 18))
                     }
                     
                     // 3. Khung popup hiển thị kết quả dịch đè lên câu thoại
@@ -294,21 +254,18 @@ struct ScreenCropTranslateView: View {
                 )
             }
             
-            // 4. Thanh điều hướng trên cùng & Thanh chọn ngôn ngữ dưới cùng
+            // 4. Nút X đóng ở góc trên (chỉ có dấu X, không thêm chữ)
             VStack {
                 HStack {
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
                     }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                            Text("Quay lại Game")
-                        }
-                        .font(.subheadline.bold())
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Capsule().fill(Color.blue))
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color.black.opacity(0.65)))
+                            .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
                     }
                     
                     Spacer()
