@@ -118,7 +118,7 @@ struct ScreenCropTranslateView: View {
                 )
             }
             
-            // 4. Thanh điều hướng trên cùng
+            // 4. Thanh điều hướng trên cùng & Thanh chọn ngôn ngữ dưới cùng
             VStack {
                 HStack {
                     Button(action: {
@@ -151,7 +151,51 @@ struct ScreenCropTranslateView: View {
                     }
                 }
                 .padding()
+                
                 Spacer()
+                
+                // MỤC MỚI: Thanh chọn ngôn ngữ ở dưới cùng màn hình (Y hệt ảnh người dùng gửi)
+                HStack(spacing: 8) {
+                    // Hộp bên trái: Ngôn ngữ nguồn (Tiếng Indonesia ▼)
+                    HStack {
+                        Text("Tiếng Indonesia")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                        Spacer()
+                        Image(systemName: "arrowtriangle.down.fill")
+                            .font(.system(size: 9))
+                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
+                    
+                    // Nút hoán đổi ⇄ ở giữa
+                    Button(action: {}) {
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 4)
+                    }
+                    
+                    // Hộp bên phải: Ngôn ngữ đích (Tiếng Việt ▼)
+                    HStack {
+                        Text("Tiếng Việt")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                        Spacer()
+                        Image(systemName: "arrowtriangle.down.fill")
+                            .font(.system(size: 9))
+                            .foregroundColor(Color(red: 0.1, green: 0.14, blue: 0.49))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 16)
             }
         }
     }
