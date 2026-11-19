@@ -14,11 +14,18 @@ struct ContentView: View {
     
     let supportedLanguages: [(code: String, name: String, flag: String)] = [
         ("en-US", "Tiếng Anh (English)", "🇺🇸"),
+        ("id-ID", "Tiếng Indonesia (Bahasa)", "🇮🇩"),
         ("ja-JP", "Tiếng Nhật (日本語)", "🇯🇵"),
-        ("zh-Hans", "Tiếng Trung (简体中文)", "🇨🇳"),
+        ("zh-Hans", "Tiếng Trung Giản thể (简体)", "🇨🇳"),
+        ("zh-Hant", "Tiếng Trung Phồn thể (繁體)", "🇭🇰"),
         ("ko-KR", "Tiếng Hàn (한국어)", "🇰🇷"),
+        ("th-TH", "Tiếng Thái (ไทย)", "🇹🇭"),
+        ("ru-RU", "Tiếng Nga (Русский)", "🇷🇺"),
+        ("es-ES", "Tiếng Tây Ban Nha (Español)", "🇪🇸"),
+        ("pt-BR", "Tiếng Bồ Đào Nha (Português)", "🇧🇷"),
         ("fr-FR", "Tiếng Pháp (Français)", "🇫🇷"),
-        ("de-DE", "Tiếng Đức (Deutsch)", "🇩🇪")
+        ("de-DE", "Tiếng Đức (Deutsch)", "🇩🇪"),
+        ("it-IT", "Tiếng Ý (Italiano)", "🇮🇹")
     ]
     
     var body: some View {

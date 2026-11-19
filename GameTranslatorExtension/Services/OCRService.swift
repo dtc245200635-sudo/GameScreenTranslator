@@ -42,7 +42,7 @@ public final class OCRService {
         // Tối ưu hóa cực hạn cho Extension:
         // .fast: Tốn ~10MB RAM (thay vì .accurate tốn ~35MB RAM dễ gây crash văng Extension)
         request.recognitionLevel = .fast
-        request.recognitionLanguages = [language]
+        request.recognitionLanguages = language == "en-US" ? ["en-US"] : [language, "en-US"]
         request.usesLanguageCorrection = false // Tắt để không tải từ điển nặng vào RAM
 
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])

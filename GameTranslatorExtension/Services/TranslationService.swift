@@ -35,8 +35,16 @@ public final class TranslationService {
             return
         }
 
-        // Tách mã ngôn ngữ đơn giản (VD: en-US -> en, ja-JP -> ja)
-        let sourceCode = source.split(separator: "-").first.map(String.init) ?? "auto"
+        // Tách mã ngôn ngữ chuẩn (VD: en-US -> en, id-ID -> id, zh-Hans -> zh-CN)
+        let sourceCode: String
+        switch source {
+        case "zh-Hans":
+            sourceCode = "zh-CN"
+        case "zh-Hant":
+            sourceCode = "zh-TW"
+        default:
+            sourceCode = source.split(separator: "-").first.map(String.init) ?? "auto"
+        }
         let targetCode = target.split(separator: "-").first.map(String.init) ?? "vi"
 
         guard let encoded = trimmed.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
